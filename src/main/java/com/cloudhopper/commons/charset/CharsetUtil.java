@@ -19,6 +19,7 @@ import java.util.HashMap;
 /**
  *
  * @author joelauer
+ * @author John Woolf (twitter: @jwoolf330 or <a href="http://twitter.com/jwoolf330" target=window>http://twitter.com/jwoolf330</a>)
  */
 public class CharsetUtil {
     public static final HashMap<String,Charset> charsets;
@@ -85,42 +86,126 @@ public class CharsetUtil {
         return charsets.get(upperCharsetName);
     }
 
+    /** @deprecated Use {@link #encode(boolean, CharSequence, String)} instead. */
+    @Deprecated
     static public byte[] encode(CharSequence str0, String charsetName) {
+        return encode(false, str0, charsetName);
+    }
+
+    /**
+     * @param udh Whether the <code>CharSequence</code> contains a <tt>UDH</tt>
+     * @param str0 The user data <code>CharSequence</code>
+     * @param charsetName The character encoding name
+     * 
+     * @return The encoded byte array 
+     * @see #encode(boolean, CharSequence, Charset)
+     */
+    static public byte[] encode(boolean udh, CharSequence str0, String charsetName) {
         Charset charset = map(charsetName);
         if (charset == null) {
             return null;
         }
-        return encode(str0, charset);
+        return encode(udh, str0, charset);
     }
 
+    /** @deprecated Use {@link #encode(boolean, CharSequence, Charset)} instead. */
+    @Deprecated
     static public byte[] encode(CharSequence str0, Charset charset) {
-        return charset.encode(str0);
+        return encode(false, str0, charset);
     }
 
+    /**
+     * @param udh Whether the <code>CharSequence</code> contains a <tt>UDH</tt>
+     * @param str0 The user data <code>CharSequence</code>
+     * @param charset The character encoding
+     * 
+     * @return The encoded byte array 
+     * @see Charset#encode(boolean, CharSequence)
+     */
+    static public byte[] encode(boolean udh, CharSequence str0, Charset charset) {
+        return charset.encode(udh, str0);
+    }
+
+    /** @deprecated Use {@link #decode(boolean, byte[], StringBuilder, String)} instead. */
+    @Deprecated
     static public void decode(byte[] bytes, StringBuilder buffer, String charsetName) {
+        decode(false, bytes, buffer, charsetName);
+    }
+
+    /** 
+     * @param udh Whether the bytes contain a <tt>UDH</tt>
+     * @param bytes The user data bytes
+     * @param buffer The buffer where the decoded data is copied
+     * @param charsetName The character encoding name
+     * 
+     * @see #decode(boolean, byte[], StringBuilder, Charset)
+     */
+    static public void decode(boolean udh, byte[] bytes, StringBuilder buffer, String charsetName) {
         Charset charset = map(charsetName);
         if (charset == null) {
             // do nothing
             return;
         }
-        decode(bytes, buffer, charset);
+        decode(udh, bytes, buffer, charset);
     }
 
+    /** @deprecated Use {@link #decode(boolean, byte[], StringBuilder, Charset)} instead. */
+    @Deprecated
     static public void decode(byte[] bytes, StringBuilder buffer, Charset charset) {
-        charset.decode(bytes, buffer);
+        decode(false, bytes, buffer, charset);
     }
 
+    /** 
+     * @param udh Whether the bytes contain a <tt>UDH</tt>
+     * @param bytes The user data bytes
+     * @param buffer The buffer where the decoded data is copied
+     * @param charset The character encoding
+     * 
+     * @see Charset#decode(boolean, byte[], StringBuilder)
+     */
+    static public void decode(boolean udh, byte[] bytes, StringBuilder buffer, Charset charset) {
+        charset.decode(udh, bytes, buffer);
+    }
+
+    /** @deprecated Use {@link #decode(boolean, byte[], String)} instead. */
+    @Deprecated
     static public String decode(byte[] bytes, String charsetName) {
+        return decode(false, bytes, charsetName);
+    }
+
+    /**
+     * @param udh Whether the bytes contain a <tt>UDH</tt>
+     * @param bytes The user data bytes
+     * @param charsetName The character encoding name
+     * 
+     * @return The decoded user data as a string
+     * @see #decode(boolean, byte[], Charset)
+     */
+    static public String decode(boolean udh, byte[] bytes, String charsetName) {
         Charset charset = map(charsetName);
         if (charset == null) {
             return null;
         }
-        return decode(bytes, charset);
+        return decode(udh, bytes, charset);
     }
 
+    /** @deprecated Use {@link #decode(boolean, byte[], Charset)} instead. */
+    @Deprecated
     static public String decode(byte[] bytes, Charset charset) {
+        return decode(false, bytes, charset);
+    }
+
+    /** 
+     * @param udh Whether the bytes contain a <tt>UDH</tt>
+     * @param bytes The user data bytes
+     * @param charset The character encoding
+     * 
+     * @return The decoded user data as a string
+     * @see Charset#decode(boolean, byte[], StringBuilder)
+     */
+    static public String decode(boolean udh, byte[] bytes, Charset charset) {
         StringBuilder buffer = new StringBuilder(charset.estimateDecodeCharLength(bytes));
-        charset.decode(bytes, buffer);
+        charset.decode(udh, bytes, buffer);
         return buffer.toString();
     }
 

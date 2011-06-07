@@ -18,28 +18,65 @@ package com.cloudhopper.commons.charset;
  * Interface for any charset.
  * 
  * @author joelauer
+ * @author John Woolf (twitter: @jwoolf330 or <a href="http://twitter.com/jwoolf330" target=window>http://twitter.com/jwoolf330</a>)
  */
 public interface Charset {
 
     public int estimateEncodeByteLength(CharSequence str0);
 
     /**
+     * @deprecated WARNING: method does not account for existence of a <tt>UDH</tt>
+     * in the <code>CharSequence</code>.</p>
+     * Use {@link #encode(boolean, CharSequence)} instead.</p>
+     * 
      * Encode the Java string into a byte array.
+     * 
      * @param str0 The Java string to convert into a byte array
      * @return A new byte array
      */
     public byte[] encode(CharSequence str0);
 
+    /**
+     * Encode the Java string into a byte array.</p> 
+     * If <tt>udh == true</tt>, implementations should preserve (i.e. not encode) 
+     * the <tt>UDH</tt> bytes while encoding the remaining message bytes accordingly. 
+     * 
+     * @param udh Whether or not the CharSequence contains bytes representing a <tt>UDH</tt>
+     * @param str0 The Java string to convert into a byte array
+     * 
+     * @return A new byte array
+     */
+    public byte[] encode(boolean udh, CharSequence str0);
+
     public int estimateDecodeCharLength(byte[] bytes);
 
     /**
+     * @deprecated WARNING: method does not account for existence of a <tt>UDH</tt>
+     * in the byte array.</p>
+     * Use {@link #decode(boolean, byte[], StringBuilder)} instead.</p>
+     * 
      * Decode the byte array to a Java string that is appended to the buffer.
      * Implementations of this method will not change any of the byte values
      * contained in the byte array.
+     * 
      * @param bytes The array of bytes to decode
      * @param buffer The String buffer to append chars to
      */
     public void decode(final byte[] bytes, StringBuilder buffer);
+
+    /**
+     * Decode the byte array to a Java string that is appended to the buffer.
+     * Implementations of this method will not change any of the byte values
+     * contained in the byte array.</p>
+     * If <tt>udh == true</tt>, implementations should preserve (i.e. not decode) 
+     * the <tt>UDH</tt> bytes while decoding the remaining message 
+     * bytes accordingly. 
+     * 
+     * @param udh Whether or not the byte array contains bytes representing a <tt>UDH</tt>
+     * @param bytes The array of bytes to decode
+     * @param buffer The String buffer to append chars to
+     */
+    public void decode(boolean udh, final byte[] bytes, StringBuilder buffer);
 
     /**
      * Normalize the characters of the source string to characters that can be
