@@ -24,6 +24,7 @@ import java.util.Arrays;
  * class.  Stupid, stupid Airwide....
  * 
  * @author joelauer
+ * @author John Woolf (twitter: @jwoolf330 or <a href="http://twitter.com/jwoolf330" target=window>http://twitter.com/jwoolf330</a>)
  */
 public class AirwideIA5Charset extends GSMCharset {
 
@@ -36,13 +37,24 @@ public class AirwideIA5Charset extends GSMCharset {
     };
 
     @Override
-    public byte[] encode(boolean udh, CharSequence str0) {
-        // encoding of unicode to "AIRWIDE-GSM" is the exact same
-        return super.encode(udh, str0);
-    }
-
-    @Override
     public void decode(boolean udh, byte[] bytes, StringBuilder buffer) {
+    	byte[] bytes2 = null;
+    	
+        if (udh) { 
+            int udhl = bytes[0] + 1;
+            buffer.append(new String(Arrays.copyOfRange(bytes, 0, udhl)));
+            byte[] messageBytes = new byte[bytes.length - udhl];
+            System.arraycopy(bytes, udhl, messageBytes, 0, messageBytes.length);
+            bytes2 = decodeAirwide(messageBytes, buffer);
+        } else {
+        	bytes2 = decodeAirwide(bytes, buffer);
+        }
+
+        // delegate to parent (pick which byte array is correct)
+        super.decode(udh, (bytes2 == null ? bytes : bytes2), buffer);
+    }
+    
+    private byte[] decodeAirwide(byte[] bytes, StringBuilder buffer) {
         int length = (bytes == null ? 0 : bytes.length);
 
         // we promise to not change any of the bytes -- an optimization is a
@@ -71,10 +83,8 @@ public class AirwideIA5Charset extends GSMCharset {
                     break OVERRIDE_LOOP;
                 }
             }
-        }
-
-        // delegate to parent (pick which byte array is correct)
-        super.decode(udh, (bytes2 == null ? bytes : bytes2), buffer);
+        }  
+        return bytes2;
     }
 
 }
