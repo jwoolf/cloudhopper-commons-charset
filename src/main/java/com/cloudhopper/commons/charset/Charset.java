@@ -34,6 +34,7 @@ public interface Charset {
      * @param str0 The Java string to convert into a byte array
      * @return A new byte array
      */
+    @Deprecated
     public byte[] encode(CharSequence str0);
 
     /**
@@ -62,6 +63,7 @@ public interface Charset {
      * @param bytes The array of bytes to decode
      * @param buffer The String buffer to append chars to
      */
+    @Deprecated
     public void decode(final byte[] bytes, StringBuilder buffer);
 
     /**
@@ -79,6 +81,10 @@ public interface Charset {
     public void decode(boolean udh, final byte[] bytes, StringBuilder buffer);
 
     /**
+     * @deprecated WARNING: method does not account for existence of a <tt>UDH</tt>
+     * in the <code>CharSequence</code>.</p>
+     * Use {@link #normalize(boolean, CharSequence)} instead.</p>
+     * 
      * Normalize the characters of the source string to characters that can be
      * represented by this charset. Any characters in the input String that
      * cannot be represented by this charset are replaced with a '?' (question
@@ -95,6 +101,27 @@ public interface Charset {
      * @param str0 The source string to normalize
      * @return The normalized string
      */
+    @Deprecated
     public String normalize(CharSequence str0);
+
+    /**
+     * Normalize the characters of the source string to characters that can be
+     * represented by this charset. Any characters in the input String that
+     * cannot be represented by this charset are replaced with a '?' (question
+     * mark character).<br><br>
+     * The default implementation of this method is partially inefficient by
+     * first encoding the input String to a byte array representing this charset
+     * followed by decoding the byte array back into a Java String. During this
+     * double conversion, any characters in the original Java String that don't
+     * exist in this charset are replaced with '?' (question mark characters)
+     * and then decoded back into a new Java String.<br><br>
+     * Some charsets may choose to override this default behavior to achieve a
+     * more efficient implementation.
+     *
+     * @param udh Whether or not the byte array contains bytes representing a <tt>UDH</tt>
+     * @param str0 The source string to normalize
+     * @return The normalized string
+     */
+    public String normalize(boolean udh, CharSequence str0);
 
 }

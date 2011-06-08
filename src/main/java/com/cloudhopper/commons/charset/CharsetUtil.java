@@ -209,16 +209,44 @@ public class CharsetUtil {
         return buffer.toString();
     }
 
+    /** @deprecated Use {@link #normalize(boolean, CharSequence, String) instead. */
+    @Deprecated
     static public String normalize(CharSequence str0, String charsetName) {
+        return normalize(false, str0, charsetName);
+    }
+
+    /**
+     * @param udh Whether the bytes contain a <tt>UDH</tt>
+     * @param str0 The user data <code>CharSequence</code>
+     * @param charsetName The character encoding name
+     * 
+     * @return The normalized string
+     * @see Charset#normalize(boolean, CharSequence)
+     */
+    static public String normalize(boolean udh, CharSequence str0, String charsetName) {
         Charset charset = map(charsetName);
         if (charset == null) {
             throw new IllegalArgumentException("Unsupported charset [" + charsetName + "]");
         }
-        return normalize(str0, charset);
+        return normalize(udh, str0, charset);
     }
 
+    /** @deprecated Use {@link #normalize(boolean, CharSequence, Charset) instead. */
+    @Deprecated
     static public String normalize(CharSequence str0, Charset charset) {
-        return charset.normalize(str0);
+        return normalize(false, str0, charset);
+    }
+
+    /**
+     * @param udh Whether the bytes contain a <tt>UDH</tt>
+     * @param str0 The user data <code>CharSequence</code>
+     * @param charset The character encoding
+     * 
+     * @return The normalized string
+     * @see Charset#normalize(boolean, CharSequence)
+     */
+    static public String normalize(boolean udh, CharSequence str0, Charset charset) {
+        return charset.normalize(udh, str0);
     }
 
 }

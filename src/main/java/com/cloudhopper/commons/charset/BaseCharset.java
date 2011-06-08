@@ -27,12 +27,20 @@ public abstract class BaseCharset implements Charset {
 	protected abstract byte[] encodeCharSequence(CharSequence str0);
 	protected abstract void decodeToBuffer(byte[] bytes, StringBuilder buffer);
 
+    /** {@inheritDoc} */
+    @Deprecated
     @Override
     public String normalize(CharSequence str0) {
-        byte[] bytes = this.encode(str0);
+    	return normalize(false, str0);
+    }
+    
+    /** {@inheritDoc} */
+    @Override
+    public String normalize(boolean udh, CharSequence str0) {
+        byte[] bytes = this.encode(udh, str0);
         // normalizing a string should never be result in a longer string
         StringBuilder buf = new StringBuilder(str0.length());
-        this.decode(bytes, buf);
+        this.decode(udh, bytes, buf);
         return buf.toString();
     }
     
