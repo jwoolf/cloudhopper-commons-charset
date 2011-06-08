@@ -77,9 +77,9 @@ public class VFTRGSMCharset extends GSMCharset {
     };
 
     @Override
-    public byte[] encode(CharSequence str0) {
+    public byte[] encode(boolean udh, CharSequence str0) {
         // first, convert UNICODE to GSM
-        byte[] gsmBytes = super.encode(str0);
+        byte[] gsmBytes = super.encode(udh, str0);
 
         // second, convert GSM to VF-TR for select chars
         // a little slow to run thru this again, but SMS are so tiny its not worth optimizing
@@ -102,7 +102,7 @@ public class VFTRGSMCharset extends GSMCharset {
     }
 
     @Override
-    public void decode(byte[] bytes, StringBuilder buffer) {
+    public void decode(boolean udh, byte[] bytes, StringBuilder buffer) {
         int length = (bytes == null ? 0 : bytes.length);
         
         // we promise to not change any of the bytes -- an optimization is a
@@ -134,7 +134,7 @@ public class VFTRGSMCharset extends GSMCharset {
         }
 
         // delegate to parent (pick which byte array is correct)
-        super.decode((bytes2 == null ? bytes : bytes2), buffer);
+        super.decode(udh, (bytes2 == null ? bytes : bytes2), buffer);
     }
 
 }

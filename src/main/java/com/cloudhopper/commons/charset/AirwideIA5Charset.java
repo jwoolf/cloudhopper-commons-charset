@@ -36,13 +36,13 @@ public class AirwideIA5Charset extends GSMCharset {
     };
 
     @Override
-    public byte[] encode(CharSequence str0) {
+    public byte[] encode(boolean udh, CharSequence str0) {
         // encoding of unicode to "AIRWIDE-GSM" is the exact same
-        return super.encode(str0);
+        return super.encode(udh, str0);
     }
 
     @Override
-    public void decode(byte[] bytes, StringBuilder buffer) {
+    public void decode(boolean udh, byte[] bytes, StringBuilder buffer) {
         int length = (bytes == null ? 0 : bytes.length);
 
         // we promise to not change any of the bytes -- an optimization is a
@@ -74,7 +74,7 @@ public class AirwideIA5Charset extends GSMCharset {
         }
 
         // delegate to parent (pick which byte array is correct)
-        super.decode((bytes2 == null ? bytes : bytes2), buffer);
+        super.decode(udh, (bytes2 == null ? bytes : bytes2), buffer);
     }
 
 }

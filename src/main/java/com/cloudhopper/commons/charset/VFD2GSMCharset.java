@@ -49,10 +49,10 @@ public class VFD2GSMCharset extends GSMCharset {
     };
 
     @Override
-    public byte[] encode(CharSequence str0) {
+    public byte[] encode(boolean udh, CharSequence str0) {
         // encoding of unicode to "VFD2-GSM" is nearly the same as "GSM", but
         // a few byte values need to be converted -- we'll first convert to GSM
-        byte[] gsmBytes = super.encode(str0);
+        byte[] gsmBytes = super.encode(udh, str0);
 
         //logger.debug(HexUtil.toHexString(gsmBytes));
 
@@ -76,7 +76,7 @@ public class VFD2GSMCharset extends GSMCharset {
     }
 
     @Override
-    public void decode(byte[] bytes, StringBuilder buffer) {
+    public void decode(boolean udh, byte[] bytes, StringBuilder buffer) {
         int length = (bytes == null ? 0 : bytes.length);
         
         // we promise to not change any of the bytes -- an optimization is a
@@ -108,7 +108,7 @@ public class VFD2GSMCharset extends GSMCharset {
         }
 
         // delegate to parent (pick which byte array is correct)
-        super.decode((bytes2 == null ? bytes : bytes2), buffer);
+        super.decode(udh, (bytes2 == null ? bytes : bytes2), buffer);
     }
 
 }
