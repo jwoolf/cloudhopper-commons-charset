@@ -39,7 +39,7 @@ public abstract class BaseCharset implements Charset {
     /** {@inheritDoc} */
     @Deprecated
     @Override
-    public  void decode(byte[] bytes, StringBuilder buffer) {
+    public final void decode(byte[] bytes, StringBuilder buffer) {
     	decode(false, bytes, buffer);
     }
 
@@ -65,7 +65,7 @@ public abstract class BaseCharset implements Charset {
     /** {@inheritDoc} */
     @Deprecated
     @Override
-    public  byte[] encode(CharSequence str0) {
+    public final byte[] encode(CharSequence str0) {
     	return encode(false, str0);
     }
 
