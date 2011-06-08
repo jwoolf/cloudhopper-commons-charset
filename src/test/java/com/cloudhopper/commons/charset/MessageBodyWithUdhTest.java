@@ -16,6 +16,10 @@ import org.junit.Test;
 import com.cloudhopper.commons.util.ByteBuffer;
 import com.cloudhopper.commons.util.HexString;
 
+/**
+*
+* @author John Woolf (twitter: @jwoolf330 or <a href="http://twitter.com/jwoolf330" target=window>http://twitter.com/jwoolf330</a>)
+*/
 public class MessageBodyWithUdhTest {
 	
 	private static final byte[] UDH_BYTES = new byte[] {(byte) 0x05, (byte) 0x00, (byte) 0x03, (byte) 0xCC, (byte) 0x02, (byte) 0x01};

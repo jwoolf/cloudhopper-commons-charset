@@ -26,19 +26,19 @@ package com.cloudhopper.commons.charset;
 public class PackedGSMCharset extends GSMCharset {
 
     @Override
-    public byte[] encode(CharSequence str0) {
-        // delete to parent first
-        byte[] unpacked = super.encode(str0);
+    public byte[] encode(boolean udh, CharSequence str0) {
+        // delegate to parent first
+        byte[] unpacked = super.encode(udh, str0);
         // return a "packed" version of it
-        return GSMBitPacker.pack(unpacked);
+        return GSMBitPacker.pack(udh, unpacked);
     }
-
+    
     @Override
-    public void decode(byte[] bytes, StringBuilder buffer) {
+    public void decode(boolean udh, byte[] bytes, StringBuilder buffer) {
         // unpack the byte array first
-        byte[] unpacked = GSMBitPacker.unpack(bytes);
+        byte[] unpacked = GSMBitPacker.unpack(udh, bytes);
         // delegate to parent
-        super.decode(unpacked, buffer);
+        super.decode(udh, unpacked, buffer);
     }
 
 }

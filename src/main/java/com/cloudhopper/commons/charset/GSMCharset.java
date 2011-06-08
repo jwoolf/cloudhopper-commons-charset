@@ -16,6 +16,9 @@ package com.cloudhopper.commons.charset;
 
 import com.cloudhopper.commons.util.FastByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+
 import org.apache.log4j.Logger;
 
 /**
@@ -130,11 +133,8 @@ public class GSMCharset extends BaseCharset {
         return str0.length() + 10;
     }
 
-    public byte[] encode(CharSequence str0) {
-        if (str0 == null) {
-            return null;
-        }
-
+	@Override
+    protected final byte[] encodeCharSequence(CharSequence str0) {
         // estimate the length of the dynamic byte array
         int estimatedByteLength = estimateEncodeByteLength(str0);
         FastByteArrayOutputStream baos = new FastByteArrayOutputStream(estimatedByteLength);
@@ -174,27 +174,9 @@ public class GSMCharset extends BaseCharset {
         return baos.toByteArray();
 
     }
-
-    public int estimateDecodeCharLength(byte[] bytes) {
-        if (bytes == null) {
-            return 0;
-        }
-        if (bytes.length < 2) {
-            return bytes.length;
-        }
-        // only a couple chars are expected to be "double" bytes
-        return bytes.length + 10;
-    }
-
-    /**
-     * Decode an SMS default alphabet-encoded octet string into a Java String.
-     */
-    public void decode(byte[] bytes, StringBuilder buffer) {
-        if (bytes == null) {
-            // append nothing
-            return;
-        }
-
+	
+    @Override
+    protected final void decodeToBuffer(byte[] bytes, StringBuilder buffer) {
         char[] table = CHAR_TABLE;
         for (int i = 0; i < bytes.length; i++) {
             int code = (int)bytes[i] & 0x000000ff;
@@ -208,4 +190,17 @@ public class GSMCharset extends BaseCharset {
             }
         }
     }
+
+    public int estimateDecodeCharLength(byte[] bytes) {
+        if (bytes == null) {
+            return 0;
+        }
+        if (bytes.length < 2) {
+            return bytes.length;
+        }
+        // only a couple chars are expected to be "double" bytes
+        return bytes.length + 10;
+    }
+
+
 }

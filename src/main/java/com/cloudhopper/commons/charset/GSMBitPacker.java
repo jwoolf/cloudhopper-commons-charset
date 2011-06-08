@@ -18,9 +18,18 @@ package com.cloudhopper.commons.charset;
  * Utility for packing and unpacking 8-bit to/from 7-bit byte arrays.
  *
  * @author joelauer
+ * @author John Woolf (twitter: @jwoolf330 or <a href="http://twitter.com/jwoolf330" target=window>http://twitter.com/jwoolf330</a>)
  */
 public class GSMBitPacker {
+	
+	private static final byte[] EMPTY_BYTE_ARRAY = new byte[0];
 
+    /** @deprecated Use {@link #pack(boolean, byte[])} instead. */
+	@Deprecated
+    public static byte[] pack(byte[] unpacked) {
+    	return pack(false, unpacked);
+    }
+ 
     /**
      * Pack a byte array according to the GSM bit-packing algorithm.
      * The GSM specification defines a simple compression mechanism for its
@@ -42,25 +51,84 @@ public class GSMBitPacker {
      * need this method.
      * </o>
      * @param unpacked The unpacked byte array.
+     * @param udh Whether the <code>CharSequence</code> contains a <tt>UDH</tt>
      * @return A new byte array containing the bytes in their packed form.
      */
-    static public byte[] pack(byte[] unpacked) {
-        if (unpacked == null) {
-            return null;
-        }
+    public static byte[] pack(boolean udh, byte[] unpacked) {
+    	return convertGsmBytes(udh, unpacked, PACK);
+    }
+    
+    /** @deprecated Use {@link #unpack(boolean, byte[])} instead. */
+    @Deprecated
+    static public byte[] unpack(byte[] packed) {
+        return unpack(false, packed);
+    }
 
-        int packedLen = unpacked.length - (unpacked.length / 8);
-        //byte[] out = new byte[(int)Math.ceil((unpacked.length * 7) / 8f)];
+    /**
+     * Unpack a byte array according to the GSM bit-packing algorithm.
+     * Read the full description in the documentation of the
+     * <code>pack</code> method.
+     * @see #pack(boolean, byte[])
+     * @param udh Whether the user data bytes contain a <tt>UDH</tt>
+     * @param packed The packed byte array.
+     * @return A new byte array containing the unpacked bytes.
+     */
+    static public byte[] unpack(boolean udh, byte[] packed) {
+    	return convertGsmBytes(udh, packed, UNPACK);
+    }
+    
+    private static byte[] convertGsmBytes(boolean udh, byte[] gsmBytes, GsmMessageConversionStrategy messageConverter) {
+        if (gsmBytes == null) {
+//          return EMPTY_BYTE_ARRAY;
+          return null;
+      }
+      if (udh) {
+          int offset = calculateOffset(gsmBytes);
+          int udhl = getUdhLength(gsmBytes);
+          byte[] udhBytes = new byte[udhl];
+          System.arraycopy(gsmBytes, 0, udhBytes, 0, udhBytes.length);
+          byte[] messageBytes = new byte[gsmBytes.length - udhl];
+          System.arraycopy(gsmBytes, udhBytes.length, messageBytes, 0, messageBytes.length);
+          byte[] convertedMessage = messageConverter.convert(offset, messageBytes);
+          byte[] bytes = new  byte[udhBytes.length + convertedMessage.length];
+          System.arraycopy(udhBytes, 0, bytes, 0, udhBytes.length);
+          System.arraycopy(convertedMessage, 0, bytes, udhBytes.length, convertedMessage.length);
+      	return bytes;
+      } else {
+          return messageConverter.convert(0, gsmBytes);        	
+      }
+    }
+
+    private interface GsmMessageConversionStrategy {
+    	byte[] convert(int offset, byte[] messageBytes);
+    }
+    
+    private static final GsmMessageConversionStrategy UNPACK = new GsmMessageConversionStrategy() {
+		@Override
+		public byte[] convert(int offset, byte[] messageBytes) {
+			return GSMBitPacker.unpackBytes(offset, messageBytes);
+		}    	
+    };
+    
+    private static final GsmMessageConversionStrategy PACK = new GsmMessageConversionStrategy() {
+		@Override
+		public byte[] convert(int offset, byte[] messageBytes) {			
+			return GSMBitPacker.packBytes(offset, messageBytes);
+		}    	
+    };
+            
+    private static byte[] packBytes(int offset, byte[] unpacked) {
+        int bitLen = (unpacked.length * 7) + offset; // total length of bits needing to be stored (message and septet offset padding)
+        int packedLen = (int) Math.ceil(bitLen/8f); 
         byte[] packed = new byte[packedLen];
 
-        int len = unpacked.length;
         int current = 0;
-        int bitpos = 0;
-        for (int i = 0; i < len; i++) {
-            byte b = (byte)(unpacked[i] & 0x7F); // remove top bit
+        int bitpos = offset;
+        for (int i = 0; i < unpacked.length; i++) {
+            byte b = (byte)(unpacked[i] & 0x7F); // remove 7 bit where bits are ordered as 7 6 5 4 3 2 1 0
             // assign first half of partial bits
             packed[current] |= (byte) ((b & 0xFF) << bitpos);
-            // assign second half of partial bits (if exist)
+            // assign second half of partial bits (if exist)            
             if (bitpos >= 2)
                 packed[++current] |= (b >> (8 - bitpos));
             bitpos = (bitpos + 7) % 8;
@@ -68,91 +136,16 @@ public class GSMBitPacker {
                 current++;
         }
         return packed;
+    	
     }
 
-    /**
-    static public byte[] pack(byte[] unpacked) {
-        if (unpacked == null) {
-            return null;
-        }
-        int packedLen = unpacked.length - (unpacked.length / 8);
-        byte[] packed = new byte[packedLen];
-        int pos = 0;
-        int i = 0;
-        while (i < unpacked.length) {
-            int jmax = (i + 7) > unpacked.length ? unpacked.length - i : 7;
-            int mask = 0x1;
-            for (int j = 0; j < jmax; j++) {
-                int b1 = (int) unpacked[i + j] & 0xff;
-                int b2 = 0x0;
-                try {
-                    b2 = (int) unpacked[i + j + 1] & mask;
-                } catch (ArrayIndexOutOfBoundsException x) {
-                }
-                packed[pos++] = (byte) ((b1 >>> j) | (b2 << (8 - (j + 1))));
-                mask = (mask << 1) | 1;
-            }
-            i += 8;
-        }
-        return packed;
-    }
-     */
-
-    /**
-     * Unpack a byte array according to the GSM bit-packing algorithm.
-     * Read the full description in the documentation of the
-     * <code>pack</code> method.
-     * @see #pack(byte[])
-     * @param packed The packed byte array.
-     * @return A new byte array containing the unpacked bytes.
-     */
-    /**
-    static public byte[] unpack2(byte[] packed) {
-        if (packed == null) {
-            return null;
-        }
-        int unpackedLen = (packed.length * 8) / 7;
-        byte[] unpacked = new byte[unpackedLen];
-        int pos = 0;
-        int i = 0;
-        while (i < packed.length) {
-            int mask = 0x7f;
-            int jmax = (i + 8) > packed.length ? (packed.length - i) : 8;
-
-            for (int j = 0; j < jmax; j++) {
-                int b1 = (int) packed[i + j] & mask;
-                int b2 = 0x0;
-                try {
-                    b2 = (int) packed[(i + j) - 1] & 0x00ff;
-                } catch (ArrayIndexOutOfBoundsException x) {
-                }
-                unpacked[pos++] = (byte) ((b1 << j) | (b2 >>> (8 - j)));
-                mask >>= 1;
-            }
-            i += 7;
-        }
-        return unpacked;
-    }
-     */
-
-    /**
-     * Unpack a byte array according to the GSM bit-packing algorithm.
-     * Read the full description in the documentation of the
-     * <code>pack</code> method.
-     * @see #pack(byte[])
-     * @param packed The packed byte array.
-     * @return A new byte array containing the unpacked bytes.
-     */
-    static public byte[] unpack(byte[] packed) {
-        if (packed == null) {
-            return null;
-        }
-
-        int unpackedLen = (packed.length * 8) / 7;
+    private static byte[] unpackBytes(int offset, byte[] packed) {    	
+        int unpackedLen = ((packed.length * 8) - offset) / 7;
         byte[] unpacked = new byte[unpackedLen];
         int len = unpacked.length;
         int current = 0;
-        int bitpos = 0;
+        //int bitpos = 0;
+        int bitpos = offset;
         for (int i = 0; i < len; i++) {
             // remove top bit and assign first half of partial bits
             unpacked[i] = (byte)(((packed[current] & 0xFF) >> bitpos) & 0x7F);
@@ -171,7 +164,7 @@ public class GSMBitPacker {
         //
         // we opt for the latter, since it's far more likely,
         // at the cost of losing a trailing '@' character
-        // in strings whose unpacked size modulo 8 is 0,
+        // in strings whose unpacked size modulo 8 equals the septet offset,
         // and whose last character is '@'.
         //
         // an application that wishes to handle this rare case
@@ -179,13 +172,27 @@ public class GSMBitPacker {
         // as by obtaining the original string length, and
         // appending the trailing '@' if the length
         // shows that there is one character missing.
-        if (len % 8 == 0 && len > 0 && unpacked[len-1] == 0) {
+        if (len % 8 == offset && len > 0 && unpacked[len-1] == 0) {
             //System.err.println("Hit special case...");
             byte[] fixed = new byte[len-1];
             System.arraycopy(unpacked, 0, fixed, 0, len-1);
             unpacked = fixed;
         }
-        return unpacked;
+        return unpacked;    	
     }
 
+    private static int getUdhLength(byte[] userData) {
+    	int udhl = userData[0];
+    	if (udhl < 1)
+    		throw new RuntimeException("UDH indicated in user data (message) bytes but non-positive UDHL value in userData[0]: " + udhl);
+    	return udhl + 1;
+    }
+    
+    private static int calculateOffset(byte[] userData) {
+    	int totalUdhLength = getUdhLength(userData);
+    	int udhLenMod7 = (totalUdhLength * 8) % 7;
+    	return udhLenMod7 != 0 ? 7 - udhLenMod7 : 0;
+    }
+
+    
 }

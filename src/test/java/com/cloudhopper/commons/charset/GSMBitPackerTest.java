@@ -28,6 +28,11 @@ public class GSMBitPackerTest {
     private static final Logger logger = Logger.getLogger(GSMBitPackerTest.class);
 
     @Test
+    public void testPackingWithUdh() throws Exception {
+    	
+    }
+    
+    @Test
     public void unpackAndPack() throws Exception {
         byte[] packed, unpacked = null;
 
