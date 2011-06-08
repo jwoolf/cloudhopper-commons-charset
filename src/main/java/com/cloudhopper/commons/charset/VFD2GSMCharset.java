@@ -29,6 +29,7 @@ import org.apache.log4j.Logger;
  * an entirely different charset for MO (mobile -> application).
  * 
  * @author joelauer
+ * @author John Woolf (twitter: @jwoolf330 or <a href="http://twitter.com/jwoolf330" target=window>http://twitter.com/jwoolf330</a>)
  */
 public class VFD2GSMCharset extends GSMCharset {
     private static final Logger logger = Logger.getLogger(VFD2GSMCharset.class);
@@ -57,6 +58,54 @@ public class VFD2GSMCharset extends GSMCharset {
         //logger.debug(HexUtil.toHexString(gsmBytes));
 
         // a little slow to run thru this again, but SMS are so tiny its not worth optimizing
+//        MAIN_LOOP:
+//        for (int i = 0; i < gsmBytes.length; i++) {
+//            OVERRIDE_LOOP:
+//            for (int j = 0; j < VFD2_OVERRIDE_TABLE.length; j++) {
+//                // if we find a GSM byte value in our override GSM column
+//                // we need to swap its value with a replacement value
+//                if (gsmBytes[i] == VFD2_OVERRIDE_TABLE[j][GSM_COL]) {
+//                    gsmBytes[i] = VFD2_OVERRIDE_TABLE[j][VFD2_COL];
+//                    // need to immediately exit search so that we don't run into
+//                    // the bug where 0x00 -> 0x40 and then 0x40 -> 0xA1
+//                    break OVERRIDE_LOOP;
+//                }
+//            }
+//        }
+        
+        if (udh) { 
+            int udhl = gsmBytes[0] + 1;
+            byte[] messageBytes = new byte[gsmBytes.length - udhl];
+            System.arraycopy(gsmBytes, udhl, messageBytes, 0, messageBytes.length);
+        	encodeVFD2(messageBytes);
+            System.arraycopy(messageBytes, 0, gsmBytes, udhl, messageBytes.length);        	
+        } else {
+        	encodeVFD2(gsmBytes);
+        }
+        
+        return gsmBytes;
+    }
+
+    @Override
+    public void decode(boolean udh, byte[] bytes, StringBuilder buffer) {
+    	byte[] bytes2 = null;
+    	
+        if (udh) { 
+            int udhl = bytes[0] + 1;
+            buffer.append(new String(Arrays.copyOfRange(bytes, 0, udhl)));
+            byte[] messageBytes = new byte[bytes.length - udhl];
+            System.arraycopy(bytes, udhl, messageBytes, 0, messageBytes.length);
+            bytes2 = decodeVFD2(messageBytes, buffer);
+        } else {
+        	bytes2 = decodeVFD2(bytes, buffer);
+        }
+
+        // delegate to parent (pick which byte array is correct)
+        super.decode(udh, (bytes2 == null ? bytes : bytes2), buffer);
+    }
+    
+    private void encodeVFD2(byte[] gsmBytes) {
+        // a little slow to run thru this again, but SMS are so tiny its not worth optimizing
         MAIN_LOOP:
         for (int i = 0; i < gsmBytes.length; i++) {
             OVERRIDE_LOOP:
@@ -70,13 +119,10 @@ public class VFD2GSMCharset extends GSMCharset {
                     break OVERRIDE_LOOP;
                 }
             }
-        }
-
-        return gsmBytes;
+        }    	
     }
 
-    @Override
-    public void decode(boolean udh, byte[] bytes, StringBuilder buffer) {
+    private byte[] decodeVFD2(byte[] bytes, StringBuilder buffer) {
         int length = (bytes == null ? 0 : bytes.length);
         
         // we promise to not change any of the bytes -- an optimization is a
@@ -106,9 +152,7 @@ public class VFD2GSMCharset extends GSMCharset {
                 }
             }
         }
-
-        // delegate to parent (pick which byte array is correct)
-        super.decode(udh, (bytes2 == null ? bytes : bytes2), buffer);
+        return bytes2;
     }
 
 }
