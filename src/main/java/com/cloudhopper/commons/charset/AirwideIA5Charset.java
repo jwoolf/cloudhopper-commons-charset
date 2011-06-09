@@ -26,7 +26,7 @@ import java.util.Arrays;
  * @author joelauer
  * @author John Woolf (twitter: @jwoolf330 or <a href="http://twitter.com/jwoolf330" target=window>http://twitter.com/jwoolf330</a>)
  */
-public class AirwideIA5Charset extends GSMCharset {
+public class AirwideIA5Charset extends OverridingGSMCharset {
 
     private static final int GSM_COL = 0;
     private static final int AIRWIDE_COL = 1;
@@ -36,31 +36,15 @@ public class AirwideIA5Charset extends GSMCharset {
         { (byte)0x11, (byte)0x5F }, // _
     };
 
-    @Override
-    public void decode(boolean udh, byte[] bytes, StringBuilder buffer) {
-    	byte[] bytes2 = null;
-    	
-        if (udh) { 
-            int udhl = bytes[0] + 1;
-            buffer.append(new String(Arrays.copyOfRange(bytes, 0, udhl)));
-            byte[] messageBytes = new byte[bytes.length - udhl];
-            System.arraycopy(bytes, udhl, messageBytes, 0, messageBytes.length);
-            bytes2 = decodeAirwide(messageBytes, buffer);
-        } else {
-        	bytes2 = decodeAirwide(bytes, buffer);
-        }
-
-        // delegate to parent (pick which byte array is correct)
-        super.decode(udh, (bytes2 == null ? bytes : bytes2), buffer);
-    }
     
-    private byte[] decodeAirwide(byte[] bytes, StringBuilder buffer) {
-        int length = (bytes == null ? 0 : bytes.length);
+    @Override
+    protected byte[] overrideDecoding(byte[] messageBytes) {
+        int length = (messageBytes == null ? 0 : messageBytes.length);
 
         // we promise to not change any of the bytes -- an optimization is a
         // lazy "copy" of the byte array in case we don't encounter any bytes
         // that need to be converted
-        byte[] bytes2 = null;
+        byte[] modifiedMessageBytes = null;
 
         // decoding "AIRWIDE-GSM" to unicode is nearly same process as "GSM", but
         // a few byte values need to be converted -- we'll first convert from AIRWIDE-GSM to GSM
@@ -71,20 +55,25 @@ public class AirwideIA5Charset extends GSMCharset {
             for (int j = 0; j < AIRWIDE_OVERRIDE_TABLE.length; j++) {
                 // if we find a AIRWIDE-GSM byte value in our AIRWIDE column
                 // we need to swap its value with a replacement value
-                if (bytes[i] == AIRWIDE_OVERRIDE_TABLE[j][AIRWIDE_COL]) {
+                if (messageBytes[i] == AIRWIDE_OVERRIDE_TABLE[j][AIRWIDE_COL]) {
                     // we found a special byte value, check if we need to copy
                     // the byte array now for a "lazy" copy
-                    if (bytes2 == null) {
-                        bytes2 = Arrays.copyOf(bytes, bytes.length);
+                    if (modifiedMessageBytes == null) {
+                        modifiedMessageBytes = Arrays.copyOf(messageBytes, messageBytes.length);
                     }
-                    bytes2[i] = AIRWIDE_OVERRIDE_TABLE[j][GSM_COL];
+                    modifiedMessageBytes[i] = AIRWIDE_OVERRIDE_TABLE[j][GSM_COL];
                     // need to immediately exit search so that we don't run into
                     // the bug where 0x00 -> 0x40 and then 0x40 -> 0xA1
                     break OVERRIDE_LOOP;
                 }
             }
         }  
-        return bytes2;
+        return modifiedMessageBytes;
+    }
+
+	@Override
+    protected void overrideEncoding(byte[] messageBytes) {
+		// NO OP
     }
 
 }

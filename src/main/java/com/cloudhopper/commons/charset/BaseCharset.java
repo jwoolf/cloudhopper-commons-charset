@@ -60,7 +60,7 @@ public abstract class BaseCharset implements Charset {
         }        
         
         if (udh) { 
-            int udhl = bytes[0] + 1;
+            int udhl = getUserDataHeaderLength(bytes);
             buffer.append(new String(Arrays.copyOfRange(bytes, 0, udhl)));
             byte[] messageBytes = new byte[bytes.length - udhl];
             System.arraycopy(bytes, udhl, messageBytes, 0, messageBytes.length);
@@ -87,7 +87,7 @@ public abstract class BaseCharset implements Charset {
         }
         
         if (udh) {
-        	int udhl = str0.charAt(0) + 1;
+        	int udhl = getUserDataHeaderLength(str0);
         	CharSequence udhChars = str0.subSequence(0, udhl);
         	byte[] udhBytes = udhChars.toString().getBytes();
         	CharSequence message = str0.subSequence(udhl, str0.length());
@@ -104,6 +104,22 @@ public abstract class BaseCharset implements Charset {
     	System.arraycopy(udhBytes, 0, bytes, 0, udhBytes.length);
     	System.arraycopy(messageBytes, 0, bytes, udhBytes.length, messageBytes.length);
     	return bytes;
+    }
+    
+    protected int getUserDataHeaderLength(byte[] userData) {
+    	int udhl = userData[0];
+    	return getUserDataHeaderLength(udhl);
+    }
+    
+    protected int getUserDataHeaderLength(CharSequence str0) {
+    	int udhl = str0.charAt(0);
+    	return getUserDataHeaderLength(udhl);
+    }
+    
+    private int getUserDataHeaderLength(int udhl) {
+    	if (udhl < 1)
+    		throw new RuntimeException("UDH indicated in user data (message) bytes but non-positive UDHL value in userData[0]: " + udhl);
+    	return udhl + 1;    	
     }
     
 

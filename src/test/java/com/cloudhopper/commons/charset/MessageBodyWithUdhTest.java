@@ -7,14 +7,16 @@ import static com.cloudhopper.commons.charset.CharsetUtil.CHARSET_UTF_8;
 import static com.cloudhopper.commons.charset.CharsetUtil.NAME_ISO_8859_1;
 import static com.cloudhopper.commons.charset.CharsetUtil.NAME_ISO_8859_15;
 import static com.cloudhopper.commons.charset.CharsetUtil.NAME_UTF_8;
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 import java.util.Arrays;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import com.cloudhopper.commons.util.ByteBuffer;
 import com.cloudhopper.commons.util.HexString;
+import com.cloudhopper.commons.util.HexUtil;
 
 /**
 *
@@ -127,6 +129,135 @@ public class MessageBodyWithUdhTest {
     @Test
     public void testUcs2DecodeEncodeWithUdh() throws Exception {
     	testDecodeEncodeWithUdh(UDH_HEX + HELLO_AT_WORLD_UCS2_HEX, CHARSET_UCS_2);
+    }
+    
+    //
+    // Airwide
+    //   
+    @Test
+    public void testAirwideEncodeNoUDH() throws Exception {
+    	HexString expected = HexString.valueOf("48656C6C6F200020576F726C64");
+    	HexString actual = HexString.valueOf(CharsetUtil.encode(false, "Hello @ World", CharsetUtil.CHARSET_AIRWIDE_IA5));
+        assertArrayEquals(expected.asBytes(), actual.asBytes());    	
+    }
+    
+    @Test
+    public void testAirwideEncodeWithUDH() throws Exception {
+    	HexString expected = HexString.valueOf(UDH_HEX + "48656C6C6F200020576F726C64");
+    	HexString actual = HexString.valueOf(CharsetUtil.encode(true, new String(UDH_BYTES) + "Hello @ World", CharsetUtil.CHARSET_AIRWIDE_IA5));
+        assertArrayEquals(expected.asBytes(), actual.asBytes());    	
+    }
+    
+    @Test
+    public void testAirwideDecodeNoUDH() throws Exception {
+    	HexString helloAtWorld = HexString.valueOf("48656C6C6F200020576F726C64");
+    	String expected = "Hello @ World";
+        String actual = CharsetUtil.decode(false, helloAtWorld.asBytes(), CharsetUtil.CHARSET_AIRWIDE_IA5);
+        assertEquals(expected, actual);    	
+    }
+
+    @Test
+    public void testAirwideDecodeWithUDH() throws Exception {
+    	HexString helloAtWorldUdh = HexString.valueOf(UDH_HEX + "48656C6C6F200020576F726C64");
+    	String expected = new String(UDH_BYTES) + "Hello @ World";
+        String actual = CharsetUtil.decode(true, helloAtWorldUdh.asBytes(), CharsetUtil.CHARSET_AIRWIDE_IA5);
+        assertEquals(expected, actual);    	
+    }
+
+    //
+    // Vodafone D2
+    //   
+    @Test
+    public void testVodafoneD2EncodeNoUDH() throws Exception {
+    	HexString expected = HexString.valueOf("48656C6C6F204020576F726C64");
+    	HexString actual = HexString.valueOf(CharsetUtil.encode(false, "Hello @ World", CharsetUtil.CHARSET_VFD2_GSM));
+        assertArrayEquals(expected.asBytes(), actual.asBytes());    	
+    }
+    
+    @Test
+    public void testVodafoneD2EncodeWithUDH() throws Exception {
+    	HexString expected = HexString.valueOf(UDH_HEX + "48656C6C6F204020576F726C64");
+    	HexString actual = HexString.valueOf(CharsetUtil.encode(true, new String(UDH_BYTES) + "Hello @ World", CharsetUtil.CHARSET_VFD2_GSM));
+        assertArrayEquals(expected.asBytes(), actual.asBytes());    	
+    }
+    
+    @Test
+    public void testVodafoneD2DecodeNoUDH() throws Exception {
+    	HexString helloAtWorld = HexString.valueOf("48656C6C6F204020576F726C64");
+    	String expected = "Hello @ World";
+        String actual = CharsetUtil.decode(false, helloAtWorld.asBytes(), CharsetUtil.CHARSET_VFD2_GSM);
+        assertEquals(expected, actual);    	
+    }
+
+    @Test
+    public void testVodafoneD2DecodeWithUDH() throws Exception {
+    	HexString helloAtWorldUdh = HexString.valueOf(UDH_HEX + "48656C6C6F204020576F726C64");
+    	String expected = new String(UDH_BYTES) + "Hello @ World";
+        String actual = CharsetUtil.decode(true, helloAtWorldUdh.asBytes(), CharsetUtil.CHARSET_VFD2_GSM);
+        assertEquals(expected, actual);    	
+    }
+
+    //
+    // Vodafone TR
+    //   
+    @Test
+    public void testVodafoneTREncodeNoUDH() throws Exception {
+    	HexString expected = HexString.valueOf("48656C6C6F204020576F726C64");
+    	HexString actual = HexString.valueOf(CharsetUtil.encode(false, "Hello @ World", CharsetUtil.CHARSET_VFTR_GSM));
+        assertArrayEquals(expected.asBytes(), actual.asBytes());    	
+    }
+    
+    @Test
+    public void testVodafoneTREncodeWithUDH() throws Exception {
+    	HexString expected = HexString.valueOf(UDH_HEX + "48656C6C6F204020576F726C64");
+    	HexString actual = HexString.valueOf(CharsetUtil.encode(true, new String(UDH_BYTES) + "Hello @ World", CharsetUtil.CHARSET_VFTR_GSM));
+        assertArrayEquals(expected.asBytes(), actual.asBytes());    	
+    }
+    
+    @Test
+    public void testVodafoneTRDecodeNoUDH() throws Exception {
+    	HexString helloAtWorld = HexString.valueOf("48656C6C6F204020576F726C64");
+    	String expected = "Hello @ World";
+        String actual = CharsetUtil.decode(false, helloAtWorld.asBytes(), CharsetUtil.CHARSET_VFTR_GSM);
+        assertEquals(expected, actual);    	
+    }
+
+    @Test
+    public void testVodafoneTRDecodeWithUDH() throws Exception {
+    	HexString helloAtWorldUdh = HexString.valueOf(UDH_HEX + "48656C6C6F204020576F726C64");
+    	String expected = new String(UDH_BYTES) + "Hello @ World";
+        String actual = CharsetUtil.decode(true, helloAtWorldUdh.asBytes(), CharsetUtil.CHARSET_VFTR_GSM);
+        assertEquals(expected, actual);    	
+    }
+
+    @Test
+    public void testVodafoneTRSpecialCharsEncodeNoUDH() throws Exception {
+    	HexString expected = HexString.valueOf("2440A3A4A5A7C4C5DFF1137F19151B65");
+    	HexString actual = HexString.valueOf(CharsetUtil.encode(false, "$@\u00a3\u00a4\u00a5\u00a7\u00c4\u00c5\u00df\u00f1\u0393\u0394\u0398\u03a9\u20ac", CharsetUtil.CHARSET_VFTR_GSM));
+        assertArrayEquals(expected.asBytes(), actual.asBytes());    	
+    }
+    
+    @Test
+    public void testVodafoneTRSpecialCharsEncodeWithUDH() throws Exception {
+    	HexString expected = HexString.valueOf(UDH_HEX + "2440A3A4A5A7C4C5DFF1137F19151B65");
+    	HexString actual = HexString.valueOf(CharsetUtil.encode(true, new String(UDH_BYTES) + "$@\u00a3\u00a4\u00a5\u00a7\u00c4\u00c5\u00df\u00f1\u0393\u0394\u0398\u03a9\u20ac", CharsetUtil.CHARSET_VFTR_GSM));
+        assertArrayEquals(expected.asBytes(), actual.asBytes());    	
+    }
+    
+    @Test
+    public void testVodafoneTRSpecialCharsDecodeNoUDH() throws Exception {
+    	HexString specialChars = HexString.valueOf("2440A3A4A5A7C4C5DFF1137F19151B65");
+    	String expected = "$@\u00a3\u00a4\u00a5\u00a7\u00c4\u00c5\u00df\u00f1\u0393\u0394\u0398\u03a9\u20ac";
+        String actual = CharsetUtil.decode(false, specialChars.asBytes(), CharsetUtil.CHARSET_VFTR_GSM);
+        assertEquals(expected, actual);    	
+    }
+
+    @Test
+    public void testVodafoneTRSpecialCharsDecodeWithUDH() throws Exception {
+    	HexString specialCharsUdh = HexString.valueOf(UDH_HEX + "2440A3A4A5A7C4C5DFF1137F19151B65");
+    	String expected = new String(UDH_BYTES) + "$@\u00a3\u00a4\u00a5\u00a7\u00c4\u00c5\u00df\u00f1\u0393\u0394\u0398\u03a9\u20ac";
+        String actual = CharsetUtil.decode(true, specialCharsUdh.asBytes(), CharsetUtil.CHARSET_VFTR_GSM);
+        assertEquals(expected, actual);    	
     }
 
     
